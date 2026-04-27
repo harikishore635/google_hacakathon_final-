@@ -17,17 +17,17 @@ import re
 from dotenv import load_dotenv
 load_dotenv()
 
-# ── Gemini AI ─────────────────────────────────────────
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-gemini_client = None
+# ── Groq AI (Google Gemma 2) ──────────────────────────
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+groq_client = None
 
-if GEMINI_API_KEY:
+if GROQ_API_KEY:
     try:
-        from google import genai as google_genai
-        gemini_client = google_genai.Client(api_key=GEMINI_API_KEY)
-        print("Gemini AI initialized successfully")
+        from groq import Groq
+        groq_client = Groq(api_key=GROQ_API_KEY)
+        print("Groq AI (Gemma 2) initialized successfully")
     except Exception as e:
-        print(f"Gemini init failed: {e}")
+        print(f"Groq init failed: {e}")
 
 # ── App instance ──────────────────────────────────────
 app = FastAPI(
@@ -129,7 +129,7 @@ async def health_check():
         "status": "healthy",
         "service": "nexseva-api",
         "version": "2.0.0",
-        "gemini_ready": gemini_client is not None,
+        "gemma_ready": groq_client is not None,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
@@ -139,7 +139,7 @@ async def root():
         "message": "NexSeva API — Intelligence Meets Compassion",
         "docs": "/docs",
         "health": "/health",
-        "gemini_ready": gemini_client is not None,
+        "gemma_ready": groq_client is not None,
     }
 
 # ── Routes: FieldMind ─────────────────────────────────
@@ -183,8 +183,8 @@ async def get_reports():
 @app.post("/api/needpulse/analyze")
 async def analyze_with_gemini(data: FieldMindTextInput):
     """Use Gemini AI to analyze a crisis report and return urgency scoring."""
-    if not gemini_client:
-        raise HTTPException(status_code=503, detail="Gemini AI not configured. Set GEMINI_API_KEY.")
+    if not groq_client:
+        raise HTTPException(status_code=503, detail="Groq AI not configured. Set GROQ_API_KEY.")
 
     prompt = GEMINI_PROMPT.format(
         crisis_type=data.crisis_type,
@@ -196,10 +196,13 @@ async def analyze_with_gemini(data: FieldMindTextInput):
     )
 
     try:
-        response = gemini_client.models.generate_content(
-            model="gemini-1.5-flash", contents=prompt
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=512,
         )
-        raw_text = response.text.strip()
+        raw_text = response.choices[0].message.content.strip()
         result = extract_json_from_text(raw_text)
 
         if not result.get("urgency_score"):
@@ -207,7 +210,7 @@ async def analyze_with_gemini(data: FieldMindTextInput):
 
         return {
             "status": "success",
-            "source": "gemini-1.5-flash",
+            "source": "llama-3.3-70b (Groq)",
             "urgency_score": int(result.get("urgency_score", 50)),
             "priority_level": result.get("priority_level", "moderate"),
             "key_risks": result.get("key_risks", []),
@@ -215,7 +218,7 @@ async def analyze_with_gemini(data: FieldMindTextInput):
             "ai_reasoning": result.get("ai_reasoning", ""),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Gemini analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Groq AI analysis failed: {str(e)}")
 
 # ── Routes: Volunteers ────────────────────────────────
 @app.post("/api/volunteers/deploy")
@@ -262,6 +265,6 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
     print(f"\n🚀 NexSeva API v2.0 starting on http://localhost:{port}")
-    print(f"🤖 Gemini AI: {'✅ Ready' if gemini_client else '❌ Not configured'}")
+    print(f"🤖 Gemini AI: {'✅ Ready' if groq_client else '❌ Not configured'}")
     print(f"📄 Docs: http://localhost:{port}/docs\n")
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
