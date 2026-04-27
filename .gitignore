@@ -1,2 +1,20 @@
 node_modules/
 .next/
+.env
+.env.local
+.env.*.local
+__pycache__/
+*.pyc
+venv/
+.venv/
+dist/
+build/
+*.log
+.DS_Store
+Thumbs.db
+tsconfig.tsbuildinfo
+
+# API key files — never commit secrets
+apikey.txt
+api key .txt
+*.key.txt
