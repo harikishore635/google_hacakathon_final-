@@ -1,15 +1,18 @@
 "use client";
 
-import { useSevakStore, CurrentView } from "@/store/sevakStore";
+import dynamic from "next/dynamic";
+import { useSevakStore } from "@/store/sevakStore";
 import { useNGOAuth } from "@/context/AuthContext";
 
-import DashboardPanel   from "@/components/modules/DashboardPanel";
-import FieldMindPanel   from "@/components/modules/FieldMindPanel";
-import FieldMindLogin   from "@/components/modules/FieldMindLogin";
-import NeedPulsePanel   from "@/components/modules/NeedPulsePanel";
-import CrisisGridMap    from "@/components/modules/CrisisGridMap";
-import KarmaDAOPanel    from "@/components/modules/KarmaDAOPanel";
-import TrustLedgerPanel from "@/components/modules/TrustLedgerPanel";
+// All panels use browser-only APIs (D3, Three.js, canvas, localStorage).
+// ssr:false ensures they only run on the client, never during server render.
+const DashboardPanel   = dynamic(() => import("@/components/modules/DashboardPanel"),   { ssr: false });
+const FieldMindPanel   = dynamic(() => import("@/components/modules/FieldMindPanel"),   { ssr: false });
+const FieldMindLogin   = dynamic(() => import("@/components/modules/FieldMindLogin"),   { ssr: false });
+const NeedPulsePanel   = dynamic(() => import("@/components/modules/NeedPulsePanel"),   { ssr: false });
+const CrisisGridMap    = dynamic(() => import("@/components/modules/CrisisGridMap"),    { ssr: false });
+const KarmaDAOPanel    = dynamic(() => import("@/components/modules/KarmaDAOPanel"),    { ssr: false });
+const TrustLedgerPanel = dynamic(() => import("@/components/modules/TrustLedgerPanel"), { ssr: false });
 
 export default function DashboardPage() {
   const { currentView } = useSevakStore();
