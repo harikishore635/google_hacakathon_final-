@@ -29,8 +29,9 @@ export default function FieldMindPanel() {
     const payload = { reporter: form.reporter, ward: form.ward, affectedFamilies: Number(form.families)||0, crisisType: form.crisis_type, needs: selectedNeeds, notes: form.notes, severity: form.severity as any, location: form.location };
     
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
       const res = await Promise.race([
-        fetch("http://localhost:8000/api/fieldmind/text", {
+        fetch(`${apiUrl}/api/fieldmind/text`, {
           method:"POST", headers:{"Content-Type":"application/json"},
           body: JSON.stringify({ reporter_name:payload.reporter, ward:payload.ward, families_affected:payload.affectedFamilies, crisis_type:payload.crisisType, needs:payload.needs, notes:payload.notes, severity_estimate:payload.severity, location:payload.location })
         }),
