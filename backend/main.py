@@ -19,14 +19,13 @@ load_dotenv()
 
 # ── Google Gemini AI ──────────────────────────────────
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-gemini_model = None
+gemini_client = None
 
 if GEMINI_API_KEY:
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
-        gemini_model = genai.GenerativeModel("gemini-1.5-flash")
-        print("Google Gemini 1.5 Flash initialized successfully")
+        from google import genai
+        gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+        print("Google Gemini 2.0 Flash initialized successfully")
     except Exception as e:
         print(f"Gemini init failed: {e}")
 
@@ -131,7 +130,7 @@ async def health_check():
         "status": "healthy",
         "service": "nexseva-api",
         "version": "3.0.0",
-        "gemini_ready": gemini_model is not None,
+        "gemini_ready": gemini_client is not None,
         "timestamp": datetime.utcnow().isoformat(),
     }
 
@@ -141,8 +140,8 @@ async def root():
         "message": "NexSeva API - Intelligence Meets Compassion",
         "docs": "/docs",
         "health": "/health",
-        "gemini_ready": gemini_model is not None,
-        "powered_by": "Google Gemini 1.5 Flash",
+        "gemini_ready": gemini_client is not None,
+        "powered_by": "Google Gemini 2.0 Flash",
     }
 
 # ── Routes: FieldMind ─────────────────────────────────
@@ -186,7 +185,7 @@ async def get_reports():
 @app.post("/api/needpulse/analyze")
 async def analyze_with_gemini(data: FieldMindTextInput):
     """Use Google Gemini 1.5 Flash to analyze a crisis report and return urgency scoring."""
-    if not gemini_model:
+    if not gemini_client:
         raise HTTPException(status_code=503, detail="Google Gemini not configured. Set GEMINI_API_KEY.")
 
     prompt = GEMINI_PROMPT.format(
@@ -199,7 +198,10 @@ async def analyze_with_gemini(data: FieldMindTextInput):
     )
 
     try:
-        response = gemini_model.generate_content(prompt)
+        response = gemini_client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=prompt,
+        )
         raw_text = response.text.strip()
         result = extract_json_from_text(raw_text)
 
@@ -263,6 +265,6 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", "8000"))
     print(f"\nNexSeva API v3.0 starting on http://localhost:{port}")
-    print(f"Google Gemini: {'Ready' if gemini_model else 'Not configured (set GEMINI_API_KEY)'}")
+    print(f"Google Gemini: {'Ready' if gemini_client else 'Not configured (set GEMINI_API_KEY)'}")
     print(f"Docs: http://localhost:{port}/docs\n")
     uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
