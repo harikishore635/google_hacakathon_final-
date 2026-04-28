@@ -313,7 +313,7 @@ function WalletPanel({
 /* ═══════════════════════════════════════════════════════
    TOP BAR
    ═══════════════════════════════════════════════════════ */
-export default function TopBar() {
+export default function TopBar({ onMobileMenuToggle }: { onMobileMenuToggle?: () => void }) {
   const { currentView, systemTime, setSystemTime } = useSevakStore();
   const { searchQuery, setSearchQuery } = useUIStore();
   const [walletOpen, setWalletOpen] = useState(false);
@@ -338,10 +338,23 @@ export default function TopBar() {
         borderColor: "var(--dash-border, #E5E7EB)",
       }}
     >
-      {/* Left: Title */}
-      <div>
+      {/* Left: Mobile Menu + Title */}
+      <div className="flex items-center gap-3">
+        {onMobileMenuToggle && (
+          <button
+            onClick={onMobileMenuToggle}
+            className="md:hidden w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:opacity-70"
+            style={{
+              background: "rgba(255,107,43,0.1)",
+              color: "#FF6B2B",
+            }}
+            aria-label="Toggle sidebar menu"
+          >
+            <i className="fas fa-bars text-sm" />
+          </button>
+        )}
         <h1
-          className="text-lg font-bold"
+          className="text-base md:text-lg font-bold truncate"
           style={{ color: "var(--dash-text-primary, #1A1A1A)" }}
         >
           {VIEW_TITLES[currentView] || "Dashboard"}

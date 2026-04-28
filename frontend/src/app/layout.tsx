@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono, Syne } from "next/font/google";
 import "./globals.css";
+// FIX: Import Providers to wrap the app with NGOAuthProvider context
 import Providers from "./Providers";
 
 const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", weight: ["300", "400", "500", "600", "700", "800"], display: "swap" });
@@ -26,9 +27,8 @@ export default function RootLayout({
       <body className={`${jakarta.variable} ${jetbrainsMono.variable} ${syne.variable} antialiased`}
         suppressHydrationWarning
         style={{ fontFamily: "var(--font-jakarta), -apple-system, BlinkMacSystemFont, sans-serif" }}>
-        <Providers>
-          {children}
-        </Providers>
+        {/* FIX: Wrap children with Providers so useNGOAuth() context is available everywhere */}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

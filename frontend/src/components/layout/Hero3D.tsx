@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+// FIX: Import React for React.Fragment (bare <> can't accept key prop)
+import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import Image from "next/image";
 import { useSevakStore } from "@/store/sevakStore";
@@ -163,14 +164,15 @@ export default function Hero3D() {
         </p>
 
         <div className="flex items-center justify-center bg-[rgba(22,27,34,0.8)] border border-border rounded-2xl p-5 mb-8 backdrop-blur-[10px]">
+          {/* FIX: Use React.Fragment with key instead of bare <> which can't accept key */}
           {[{val: reports.length, label:"Crisis Reports"},{val:`₹${totalFunded.toLocaleString()}`,label:"Funded"},{val:activeVolunteers,label:"Volunteers"},{val:Array.from(new Set(reports.map(r=>r.ward))).length,label:"Wards Active"}].map(({val,label},i,arr)=>(
-            <>
-              <div key={label} className="flex flex-col items-center gap-1 px-8">
+            <React.Fragment key={label}>
+              <div className="flex flex-col items-center gap-1 px-8">
                 <span className="text-2xl font-extrabold text-accent font-mono transition-all">{val}</span>
                 <span className="text-[11px] text-text-muted uppercase tracking-wider">{label}</span>
               </div>
               {i < arr.length-1 && <div className="w-px h-10 bg-border"></div>}
-            </>
+            </React.Fragment>
           ))}
         </div>
 
